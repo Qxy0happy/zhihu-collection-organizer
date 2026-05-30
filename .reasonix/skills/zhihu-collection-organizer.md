@@ -1,15 +1,9 @@
 ---
 name: zhihu-collection-organizer
 description: 整理知乎收藏夹：将"我的收藏"按语义分类移到对应收藏夹，使用 browser-harness 单标签页操作
-run_as: subagent
-allowed_tools:
-  - run_command
-  - write_file
-  - read_file
-  - edit_file
-  - delete_file
-  - search_content
-  - glob
+runAs: subagent
+allowed-tools: run_command, write_file, read_file, edit_file, delete_file, search_content, glob
+max-iters: 32
 ---
 # 知乎收藏夹整理 Skill
 
@@ -17,7 +11,7 @@ allowed_tools:
 
 这是一个自动化整理知乎收藏夹的 playbook。你要在一个已有 browser-harness 浏览器标签页中操作知乎网页 UI。
 
-## 核心数据：收藏夹 ID 映射（硬编码）
+## 核心数据：收藏夹 ID 映射
 
 | 收藏夹名称 | ID |
 |-----------|:--:|
@@ -42,104 +36,98 @@ allowed_tools:
 | Julia && HPC | 958833387 |
 | Dart&Flutter\|\|JS/TS | 973441678 |
 
-## 分类关键字规则
-
-对条目标题进行正则匹配（大小写不敏感），优先级从上到下：
+## 分类关键字规则（优先级从上到下）
 
 ### AI (935064503)
-`deepseek`, `llm`, `rag\b`, `prompt`, `transformer`, `\bai\b`, `人工智能`, `大模型`, `机器学习`, `深度学习`, `神经网络`, `quantiz`, `量化.*(模型|推理)`, `\bgpt\b`, `claude`, `gemini`, `chatgpt`, `qwen`, `\bagent\b`, `diffusion`, `pytorch`, `tensorflow`, `强化学习`, `lora\b`, `npu\b`, `\bnlp\b`, `生成式`, `finetun`, `fine.?tun`, `spec kit`, `vibe coding`, `动手学深度学习`, `机器学习.*(周志华|入门|数学)`, `深度学习.*(入门|无法|路线)`, `transformer.*(理解|Q|K|V)`
+deepseek, llm, rag, prompt, transformer, ai, 人工智能, 大模型, 机器学习, 深度学习, 神经网络, quantiz, 量化, gpt, claude, gemini, chatgpt, qwen, agent, diffusion, pytorch, tensorflow, 强化学习, lora, npu, nlp, 生成式, finetun, fine-tun, spec kit, vibe coding
 
 ### Golang (973381050)
-`golang`, `go语言`, `flow库`
+golang, go语言, flow库
 
 ### Python Tech (928071901)
-`python`, `numpy`, `pandas`, `seaborn`, `django`, `flask\b`
+python, numpy, pandas, seaborn, django, flask
 
 ### C/Cpp & Rust & Zig (943782357)
-`c[+\+]{2}`, `c语言`, `rust`, `zig`, `cmake`
+c++, c语言, rust, zig, cmake
 
 ### Dart&Flutter||JS/TS (973441678)
-`dart`, `flutter`, `javascript`, `typescript`, `node\.?js`, `react\b`, `vue\b`, `angular`, `前端`, `svelte`
+dart, flutter, javascript, typescript, node, react, vue, angular, 前端, svelte
 
 ### C# (983792958)
-`c#`, `\.net`, `csharp`
+c#, .net, csharp
 
 ### Julia && HPC (958833387)
-`julia`, `hpc`, `高性能计算`, `cuda`, `sycl`
+julia, hpc, 高性能计算, cuda, sycl
 
 ### Helix (995272094)
-`helix` (单独高优先级，匹配 Helix 编辑器)
+helix（单独高优先级，匹配 Helix 编辑器）
 
 ### Erlang || Elixir (974290729)
-`erlang`, `elixir`
+erlang, elixir
 
 ### Latex && Typst (958833465)
-`latex`, `typst`, `排版`
+latex, typst, 排版
 
 ### Video Encode/Decode (988467874)
-`video`, `encode`, `decode`, `视频`, `编解码`, `codec`, `ffmpeg`
+video, encode, decode, 视频, 编解码, codec, ffmpeg
 
 ### 线性代数 (934039369)
-`线性代数`, `特征值`, `二次型`, `矩阵论`, `线性.*(空间|变换)`
+线性代数, 特征值, 二次型, 矩阵论
 
 ### 数学 (928481622)
-`运筹学`, `单纯形`, `最优化`, `优化.*(算法|理论)`, `数学模型`, `概率论`, `冷门.*数学`
+运筹学, 单纯形, 最优化, 优化算法, 数学模型, 概率论
 
 ### 统计学 & 概率学 (953837474)
-`统计`, `概率`, `回归`, `贝叶斯`, `假设检验`, `方差`
+统计, 概率, 回归, 贝叶斯, 假设检验, 方差
 
 ### 物理学 & 工程问题 (953838207)
-`物理`, `力学`, `流体`, `固体物理`, `热力学`, `量子`
+物理, 力学, 流体, 固体物理, 热力学, 量子
 
 ### 化学 && 化工 (935931218)
-`化学`, `化工`, `反应工程`, `换热`, `夹点`, `材料学`
+化学, 化工, 反应工程, 换热, 夹点, 材料学
 
 ### 函数式编程 (984326333)
-`函数式`, `functional`, `haskell`, `scala`, `monad`, `纯函数`
+函数式, functional, haskell, scala, monad, 纯函数
 
 ### 编程问题 & 相关技术 (953835767)
-`git`, `github`, `vscode`, `编辑器`, `ide`, `docker`, `markdown`, `wezterm`, `终端`, `terminal`, `开源`, `api`, `windows.*(兼容|技术)`, `wsl`, `nginx`, `regex`, `正则`, `计算机.*(原理|组成|基础)`, `网络.*(协议|编程)`, `输入法`, `软件`, `slidev`, `ocaml`, `代码.*(阅读|理解)`, `claude code`, `缓存`, `ramdisk`, `性能.*(优化|提升)`, `浏览器`, `ssh`, `shell`, `bash`, `zsh`, `powershell`, `cpu`, `架构`, `设计模式`, `重构`
+git, github, vscode, ide, docker, markdown, 终端, terminal, 开源, api, wsl, nginx, 正则, regex, 计算机原理, 网络编程, 输入法, slidev, ocaml, claude code, shell, bash, zsh, powershell, cpu, 架构, 设计模式, 重构
 
 ### 学习以及方法论 (981972105)
-`学习.*(方法|路径|规划|建议|习惯)`, `读书`, `阅读`, `考研`, `学术`, `文献`, `方法论`, `教育`, `科研`, `zotero`, `anki`
+学习方法, 读书, 阅读, 考研, 学术, 文献, 方法论, 科研, zotero, anki
 
-## Phase 1: 提取所有条目
+## 操作流程
 
-1. 切换到已有 browser-harness 标签页（**不**调 `new_tab()`），确认 URL 包含 `collection/926179078`
-2. 遍历 1-50 页。翻页：`document.querySelectorAll('button.PaginationButton')` 找对应数字或"下一页"按钮。
+### Phase 1: 提取条目
+
+1. 用已有标签页（**不**调 `new_tab()`），确认 URL 含 `collection/926179078`
+2. 遍历 1-50 页。翻页：`document.querySelectorAll('button.PaginationButton')` 点对应数字或"下一页"
 3. 每页提取：
-   ```javascript
-   document.querySelectorAll('.ContentItem[data-zop]').forEach(function(item) {
+   ```js
+   document.querySelectorAll('.ContentItem[data-zop]').forEach(item => {
      var zop = JSON.parse(item.getAttribute('data-zop'));
-     var titleEl = item.querySelector('.ContentItem-title a');
      // 收集 itemId, type, title
    });
    ```
-4. 用 `wait_for_load(3)` 等翻页加载
-5. 去重后写到 `_all_items.json`
+4. 去重写 `_all_items.json`
 
-## Phase 2: 分类
+### Phase 2: 分类
 
-用上述关键字规则匹配每个条目标题，输出 `_classification.json`。
-不匹配的留在"我的收藏"。
+每条标题匹配上述关键字（正则不区分大小写），输出 `_classification.json`。不匹配的留在"我的收藏"。
 
-## Phase 3: 执行移动
+### Phase 3: 移动
 
 对每个已分类条目：
-
-1. 翻到目标条目所在页
-2. 找到条目的 `button[aria-label="收藏"]` → `.click()`
-3. 等待 `.FavlistsModal` 弹窗出现（约 1.5s）
-4. 在弹窗中：
-   - 找到目标收藏夹的 `.Favlists-updateButton`，如果文字是"收藏"则点击
-   - 找到"我的收藏"的 `.Favlists-updateButton`，如果文字是"已收藏"则点击
-5. 点击 `.Modal-closeButton` 关弹窗
-6. 每条间隔 3-6 秒随机延迟，每 5 条存进度到 `_move_progress.json`
-7. 被知乎风控时停止，下次从进度文件继续
+1. 翻到所在页
+2. 点其 `button[aria-label="收藏"]` → 等 `.FavlistsModal` 弹窗
+3. 在弹窗中：
+   - 点目标收藏夹的 `Favlists-updateButton`（文字"收藏"时点）
+   - 点"我的收藏"的 `Favlists-updateButton`（文字"已收藏"时点）
+4. 点 `.Modal-closeButton` 关弹窗
+5. 每条间隔 3-6s，每 5 条存 `_move_progress.json`
+6. 被风控时停，下次续传
 
 ## 注意事项
 
-- **全程只用一个标签页**，不调 `new_tab()`／`close_tab()`
-- **正则需要转义**，Python 中写 `r'...'` 或双重反斜杠
-- **收藏夹名称用汉字直接匹配**（如 `'AI'`、`'数学'`），在 JS 中用 `===` 比较
-- **支持断点续传**：读取 `_move_progress.json` 跳过已处理 ID
+- 全程只用一个标签页，不调 `new_tab()` / `close_tab()`
+- 收藏夹名称汉字比较用 JS 的 `===`
+- 支持断点续传：读 `_move_progress.json` 跳过已处理的 ID
