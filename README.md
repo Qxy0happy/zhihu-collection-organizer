@@ -1,19 +1,15 @@
 # 知乎收藏夹整理工具
 
-将「我的收藏」按语义分类自动移到对应专题收藏夹。
+将知乎「我的收藏」按主题分类自动移到对应专题收藏夹。
+
+## 原理
+
+1. 抓取所有收藏夹名称和 ID
+2. 用 LLM 判断每条内容应归入哪个收藏夹
+3. 通过浏览器弹窗操作执行移动
 
 ## 使用
 
-支持 browser-harness 的 AI 编程助手可自动发现 `skills/SKILL.md`。
+需 browser-harness（pip install browser-harness）和已登录知乎的浏览器。
 
-## 前置条件
-
-1. 浏览器已登录知乎
-2. 安装 browser-harness：`pip install browser-harness`
-
-## 项目结构
-
-```
-skills/SKILL.md  — 标准 Skill 描述文件
-README.md
-```
+AI 编程助手发现 `SKILL.md` 后自动按流程执行。
