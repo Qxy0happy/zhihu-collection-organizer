@@ -15,7 +15,7 @@ metadata:
 
 1. **抓收藏夹** — 从知乎页面抓取所有收藏夹的名称和 ID
 2. **LLM 分类** — 逐条判断"我的收藏"中的内容应归入哪个收藏夹
-3. **执行移动** — 通过网页弹窗操作，将内容加入目标收藏夹并从"我的收藏"移除
+3. **执行移动** — 通过网页弹窗操作，每次最多处理 20 条，将内容加入目标收藏夹并从"我的收藏"移除
 
 ---
 
@@ -59,13 +59,31 @@ document.querySelectorAll('.ContentItem[data-zop]').forEach(item => {
 
 输出 `_classification.json`。
 
-## 第四步：执行移动
+## 第四步：执行移动（每次最多 20 条）
 
-每个已分类条目两步操作：
+对每个已分类条目，两步操作：
 
 1. 翻到条目所在页，点 `button[aria-label="收藏"]` → 弹 `.FavlistsModal`
 2. 弹窗中点目标收藏夹的 `.Favlists-updateButton`（文字"收藏"时点）
 3. 点"我的收藏"的 `.Favlists-updateButton`（文字"已收藏"时点）
 4. 点 `.Modal-closeButton` 关弹窗
 
-每条间隔 3-6 秒，每 5 条存进度。被风控时停止，下次续传。
+**限制：每次运行时最多处理 20 条**。知乎对短时间内的操作次数有限制，20 条是安全阈值。处理完后提示用户已完毕，如需继续可再次运行。
+
+处理进度保存在 `_move_progress.json`，下次运行自动跳过已处理的条目。
+
+---
+
+## 弹窗 HTML 结构参考
+
+```html
+<div class="Modal FavlistsModal">
+  <div class="Favlists-items">
+    <div class="Favlists-item">
+      <span class="Favlists-itemNameText">AI</span>
+      <button class="Favlists-updateButton Button--blue">收藏</button>
+      <!-- 或 Button--grey + "已收藏" -->
+    </div>
+  </div>
+</div>
+```
