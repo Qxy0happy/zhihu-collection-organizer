@@ -1,0 +1,88 @@
+---
+name: zhihu-collection-organizer
+description: 整理知乎收藏夹：当你需要将"我的收藏"按语义分类移到对应专题收藏夹时使用。遍历页面提取条目、关键字匹配分类、通过网页弹窗操作执行移动。
+---
+
+# 知乎收藏夹整理
+
+## 概述
+
+将知乎"我的收藏"（https://www.zhihu.com/collection/926179078）中的内容按语义归类到对应的专题收藏夹。全程在单个 browser-harness 标签页中操作，支持断点续传。
+
+## 收藏夹 ID 映射
+
+| 名称 | ID |
+|------|:--:|
+| Golang | 973381050 |
+| 统计学 & 概率学 | 953837474 |
+| C/Cpp & Rust & Zig | 943782357 |
+| 编程问题 & 相关技术 | 953835767 |
+| AI | 935064503 |
+| Helix | 995272094 |
+| C# | 983792958 |
+| 学习以及方法论 | 981972105 |
+| 化学 && 化工 | 935931218 |
+| 物理学 & 工程问题 | 953838207 |
+| Video Encode/Decode | 988467874 |
+| Erlang \|\| Elixir | 974290729 |
+| Latex && Typst | 958833465 |
+| 线性代数 | 934039369 |
+| Python Tech | 928071901 |
+| 函数式编程 | 984326333 |
+| 数学 | 928481622 |
+| Julia && HPC | 958833387 |
+| Dart&Flutter\|\|JS/TS | 973441678 |
+
+## 分类规则
+
+对条目标题做不区分大小写的关键字匹配，优先级从上到下：
+
+- **AI** (935064503): deepseek, llm, rag, prompt, transformer, ai, 人工智能, 大模型, 机器学习, 深度学习, 神经网络, 量化, gpt, claude, gemini, chatgpt, qwen, agent, diffusion, pytorch, tensorflow, 强化学习, lora, npu, nlp
+- **Golang** (973381050): golang, go语言
+- **Python Tech** (928071901): python, numpy, pandas, django, flask
+- **C/Cpp & Rust & Zig** (943782357): c++, c语言, rust, zig, cmake
+- **Dart&Flutter\|\|JS/TS** (973441678): dart, flutter, javascript, typescript, node, react, vue, angular, 前端, svelte
+- **C#** (983792958): c#, .net
+- **Julia && HPC** (958833387): julia, hpc, cuda, sycl
+- **Helix** (995272094): helix（编辑器）
+- **Erlang \|\| Elixir** (974290729): erlang, elixir
+- **Latex && Typst** (958833465): latex, typst, 排版
+- **Video Encode/Decode** (988467874): video, encode, decode, 视频, 编解码
+- **线性代数** (934039369): 线性代数, 特征值, 矩阵
+- **数学** (928481622): 运筹学, 单纯形, 最优化
+- **统计学 & 概率学** (953837474): 统计, 概率, 回归, 贝叶斯
+- **物理学 & 工程问题** (953838207): 物理, 力学, 流体, 热力学, 量子
+- **化学 && 化工** (935931218): 化学, 化工, 反应工程, 换热
+- **函数式编程** (984326333): 函数式, haskell, scala, monad
+- **编程问题 & 相关技术** (953835767): git, github, vscode, docker, 终端, 开源, api, 架构, 设计模式, 重构
+- **学习以及方法论** (981972105): 学习, 考研, 读书, 文献, 科研
+
+不匹配任何规则的内容留在"我的收藏"不动。
+
+## 执行步骤
+
+### Phase 1: 提取条目
+
+1. 用 browser-harness 打开 `https://www.zhihu.com/collection/926179078`（已登录状态）
+2. 遍历 1-50 页，每页通过 `document.querySelectorAll('.ContentItem[data-zop]')` 提取 `itemId`、`type`、标题
+3. 翻页：点 `button.PaginationButton`（数字按钮或"下一页"）
+4. 去重后存 `_all_items.json`
+
+### Phase 2: 分类
+
+用上述关键字匹配每条标题，输出 `_classification.json`。
+
+### Phase 3: 移动
+
+对每个已分类的条目：
+1. 翻到该条目所在页
+2. 点其 `button[aria-label="收藏"]` → 弹出 `.FavlistsModal`
+3. 在弹窗中点目标收藏夹的 `.Favlists-updateButton`（文字"收藏"时点）
+4. 点"我的收藏"的 `.Favlists-updateButton`（文字"已收藏"时点）
+5. 点 `.Modal-closeButton` 关弹窗
+6. 每条间隔 3-6 秒
+
+## 注意
+
+- 知乎有反刷机制，被风控时停止，下次从 `_move_progress.json` 续传
+- 全程只用一个标签页，不重复开新页
